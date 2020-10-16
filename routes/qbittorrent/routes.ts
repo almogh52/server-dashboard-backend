@@ -261,6 +261,11 @@ router.get("/torrents", async (req, res) => {
             pieceSize: rawTorrentGeneric.piece_size,
             connections: rawTorrentGeneric.nb_connections,
             connectionsLimit: rawTorrentGeneric.nb_connections_limit,
+            downloadSeqOrder: rawTorrent.seq_dl,
+            downloadEdgesFirst: rawTorrent.f_l_piece_prio,
+            autoManage: rawTorrent.auto_tmm,
+            category: rawTorrent.category,
+            tags: rawTorrent.tags.split(","),
           };
         })
       );
@@ -360,6 +365,48 @@ router.post("/torrent/:torrentHash/minPriority", async (req, res) => {
     .then(() => res.send(null))
     .catch(() => res.status(400).send(null));
 });
+
+router.post("/torrent/:torrentHash/reannounce", async (req, res) => {
+  await axios
+    .get(
+      `${qbittorrentServerUrl}/api/v2/torrents/reannounce?hashes=${req.params.torrentHash}`
+    )
+    .then(() => res.send(null))
+    .catch(() => res.status(400).send(null));
+});
+
+router.post("/torrent/:torrentHash/recheck", async (req, res) => {
+  await axios
+    .get(
+      `${qbittorrentServerUrl}/api/v2/torrents/recheck?hashes=${req.params.torrentHash}`
+    )
+    .then(() => res.send(null))
+    .catch(() => res.status(400).send(null));
+});
+
+router.post(
+  "/torrent/:torrentHash/toggleDownloadSeqOrder",
+  async (req, res) => {
+    await axios
+      .get(
+        `${qbittorrentServerUrl}/api/v2/torrents/toggleSequentialDownload?hashes=${req.params.torrentHash}`
+      )
+      .then(() => res.send(null))
+      .catch(() => res.status(400).send(null));
+  }
+);
+
+router.post(
+  "/torrent/:torrentHash/toggleDownloadEdgesFirst",
+  async (req, res) => {
+    await axios
+      .get(
+        `${qbittorrentServerUrl}/api/v2/torrents/toggleFirstLastPiecePrio?hashes=${req.params.torrentHash}`
+      )
+      .then(() => res.send(null))
+      .catch(() => res.status(400).send(null));
+  }
+);
 
 router.post("/torrent/:torrentHash/setSavePath", async (req, res) => {
   if (!req.body || !req.body.savePath) {
@@ -521,6 +568,29 @@ router.post("/torrent/:torrentHash/renameFile", async (req, res) => {
     .catch(() => res.status(400).send(null));
 });
 
+router.post("/torrent/:torrentHash/setForceStart", async (req, res) => {
+  if (!req.body || typeof req.body.forceStart !== "boolean") {
+    res.status(400).send(null);
+    return;
+  }
+
+  await axios
+    .post(
+      `${qbittorrentServerUrl}/api/v2/torrents/setForceStart`,
+      querystring.stringify({
+        hashes: req.params.torrentHash,
+        value: req.body.forceStart as boolean,
+      }),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    )
+    .then(() => res.send(null))
+    .catch(() => res.status(400).send(null));
+});
+
 router.post("/torrents/add", async (req, res) => {
   if (
     !req.body ||
@@ -551,7 +621,7 @@ router.post("/torrents/add", async (req, res) => {
   const startTorrent: boolean = req.body.startTorrent;
   const createSubfolder: boolean = req.body.createSubfolder;
   const autoManage: boolean = req.body.autoManage;
-  const downloadEdgeFirst: boolean = req.body.downloadEdgeFirst;
+  const downloadEdgesFirst: boolean = req.body.downloadEdgesFirst;
   const downloadSeqOrder: boolean = req.body.downloadSeqOrder;
   const torrentName: string = req.body.torrentName;
   const downloadLimit: number = req.body.downloadLimit;
@@ -614,8 +684,8 @@ router.post("/torrents/add", async (req, res) => {
     formData.append("sequentialDownload", downloadSeqOrder.toString());
   }
 
-  if (typeof downloadEdgeFirst === "boolean") {
-    formData.append("firstLastPiecePrio", downloadEdgeFirst.toString());
+  if (typeof downloadEdgesFirst === "boolean") {
+    formData.append("firstLastPiecePrio", downloadEdgesFirst.toString());
   }
 
   await axios
