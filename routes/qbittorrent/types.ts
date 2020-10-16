@@ -67,6 +67,11 @@ export interface TorrentFile {
   availability: number;
 }
 
+export interface Category {
+  name: string;
+  savePath: string;
+}
+
 export interface Preferences {
   locale: string;
   createSubfolderEnabled: boolean;
@@ -99,8 +104,8 @@ export interface Preferences {
   maxActiveTorrents: number;
   maxActiveUploads: number;
   dontCountSlowTorrents: boolean;
-  slowTorrentDlRateThreshold: number;
-  slowTorrentUlRateThreshold: number;
+  slowTorrentDownloadRateThreshold: number;
+  slowTorrentUploadRateThreshold: number;
   slowTorrentInactiveTimer: number;
   maxRatioEnabled: boolean;
   maxRatio: number;
@@ -108,10 +113,10 @@ export interface Preferences {
   listenPort: number;
   upnp: boolean;
   randomPort: boolean;
-  dlLimit: number;
-  upLimit: number;
-  maxConnec: number;
-  maxConnecPerTorrent: number;
+  downloadLimit: number;
+  uploadLimit: number;
+  maxConnections: number;
+  maxConnectionsPerTorrent: number;
   maxUploads: number;
   maxUploadsPerTorrent: number;
   stopTrackerTimeout: number;
@@ -120,8 +125,8 @@ export interface Preferences {
   limitUtpRate: boolean;
   limitTcpOverhead: boolean;
   limitLanPeers: boolean;
-  altDlLimit: number;
-  altUpLimit: number;
+  altDownloadLimit: number;
+  altUploadLimit: number;
   schedulerEnabled: boolean;
   scheduleFromHour: number;
   scheduleFromMin: number;

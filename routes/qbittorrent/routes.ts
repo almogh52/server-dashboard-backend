@@ -1,12 +1,15 @@
 import express from "express";
 import querystring from "querystring";
 import axios, { AxiosResponse } from "axios";
+import FormData from "form-data";
 
 import {
   Torrent,
   TorrentState,
   TorrentFile,
   TorrentFilePriority,
+  Preferences,
+  Category,
 } from "./types";
 
 const router = express.Router();
@@ -65,7 +68,7 @@ const convertTorrentState = (raw_state: any): TorrentState => {
 
 axios.defaults.withCredentials = true;
 
-router.get("/applicationName", async (req, res) => {
+router.get("/application/info", async (req, res) => {
   await axios
     .get(`${qbittorrentServerUrl}/api/v2/app/version`)
     .then(async (appVersionRes) => {
@@ -77,6 +80,132 @@ router.get("/applicationName", async (req, res) => {
           )
         )
         .catch(() => res.status(500).send(null));
+    })
+    .catch(() => res.status(500).send(null));
+});
+
+router.get("/application/preferences", async (req, res) => {
+  await axios
+    .get(`${qbittorrentServerUrl}/api/v2/app/preferences`)
+    .then((prefsRes) => {
+      let prefs: Preferences;
+
+      prefs = {
+        locale: prefsRes.data.locale,
+        createSubfolderEnabled: prefsRes.data.create_subfolder_enabled,
+        startPausedEnabled: prefsRes.data.start_paused_enabled,
+        autoDeleteMode: prefsRes.data.auto_delete_mode,
+        preallocateAll: prefsRes.data.preallocate_all,
+        incompleteFilesExt: prefsRes.data.incomplete_files_ext,
+        autoTmmEnabled: prefsRes.data.auto_tmm_enabled,
+        torrentChangedTmmEnabled: prefsRes.data.torrent_changed_tmm_enabled,
+        savePathChangedTmmEnabled: prefsRes.data.save_path_changed_tmm_enabled,
+        categoryChangedTmmEnabled: prefsRes.data.category_changed_tmm_enabled,
+        savePath: prefsRes.data.save_path,
+        tempPathEnabled: prefsRes.data.temp_path_enabled,
+        tempPath: prefsRes.data.temp_path,
+        scanDirs: prefsRes.data.scan_dirs,
+        exportDir: prefsRes.data.export_dir,
+        exportDirFin: prefsRes.data.export_dir_fin,
+        mailNotificationEnabled: prefsRes.data.mail_notification_enabled,
+        mailNotificationSender: prefsRes.data.mail_notification_sender,
+        mailNotificationEmail: prefsRes.data.mail_notification_email,
+        mailNotificationSmtp: prefsRes.data.mail_notification_smtp,
+        mailNotificationSslEnabled: prefsRes.data.mail_notification_ssl_enabled,
+        mailNotificationAuthEnabled:
+          prefsRes.data.mail_notification_auth_enabled,
+        mailNotificationUsername: prefsRes.data.mail_notification_username,
+        mailNotificationPassword: prefsRes.data.mail_notification_password,
+        autorunEnabled: prefsRes.data.autorun_enabled,
+        autorunProgram: prefsRes.data.autorun_program,
+        queueingEnabled: prefsRes.data.queueing_enabled,
+        maxActiveDownloads: prefsRes.data.max_active_downloads,
+        maxActiveTorrents: prefsRes.data.max_active_torrents,
+        maxActiveUploads: prefsRes.data.max_active_uploads,
+        dontCountSlowTorrents: prefsRes.data.dont_count_slow_torrents,
+        slowTorrentDownloadRateThreshold:
+          prefsRes.data.slow_torrent_dl_rate_threshold,
+        slowTorrentUploadRateThreshold:
+          prefsRes.data.slow_torrent_ul_rate_threshold,
+        slowTorrentInactiveTimer: prefsRes.data.slow_torrent_inactive_timer,
+        maxRatioEnabled: prefsRes.data.max_ratio_enabled,
+        maxRatio: prefsRes.data.max_ratio,
+        maxRatioAct: prefsRes.data.max_ratio_act,
+        listenPort: prefsRes.data.listen_port,
+        upnp: prefsRes.data.upnp,
+        randomPort: prefsRes.data.random_port,
+        downloadLimit: prefsRes.data.dl_limit,
+        uploadLimit: prefsRes.data.up_limit,
+        maxConnections: prefsRes.data.max_connec,
+        maxConnectionsPerTorrent: prefsRes.data.max_connec_per_torrent,
+        maxUploads: prefsRes.data.max_uploads,
+        maxUploadsPerTorrent: prefsRes.data.max_uploads_per_torrent,
+        stopTrackerTimeout: prefsRes.data.stop_tracker_timeout,
+        pieceExtentAffinity: prefsRes.data.piece_extent_affinity,
+        enableUtp: prefsRes.data.enable_utp,
+        limitUtpRate: prefsRes.data.limit_utp_rate,
+        limitTcpOverhead: prefsRes.data.limit_tcp_overhead,
+        limitLanPeers: prefsRes.data.limit_lan_peers,
+        altDownloadLimit: prefsRes.data.alt_dl_limit,
+        altUploadLimit: prefsRes.data.alt_up_limit,
+        schedulerEnabled: prefsRes.data.scheduler_enabled,
+        scheduleFromHour: prefsRes.data.schedule_from_hour,
+        scheduleFromMin: prefsRes.data.schedule_from_min,
+        scheduleToHour: prefsRes.data.schedule_to_hour,
+        scheduleToMin: prefsRes.data.schedule_to_min,
+        schedulerDays: prefsRes.data.scheduler_days,
+        dht: prefsRes.data.dht,
+        dhtSameAsBt: prefsRes.data.dht_same_as_bt,
+        dhtPort: prefsRes.data.dht_port,
+        pex: prefsRes.data.pex,
+        lsd: prefsRes.data.lsd,
+        encryption: prefsRes.data.encryption,
+        anonymousMode: prefsRes.data.anonymous_mode,
+        proxyType: prefsRes.data.proxy_type,
+        proxyIp: prefsRes.data.proxy_ip,
+        proxyPort: prefsRes.data.proxy_port,
+        proxyPeerConnections: prefsRes.data.proxy_peer_connections,
+        forceProxy: prefsRes.data.force_proxy,
+        proxyAuthEnabled: prefsRes.data.proxy_auth_enabled,
+        proxyUsername: prefsRes.data.proxy_username,
+        proxyPassword: prefsRes.data.proxy_password,
+        ipFilterEnabled: prefsRes.data.ip_filter_enabled,
+        ipFilterPath: prefsRes.data.ip_filter_path,
+        ipFilterTrackers: prefsRes.data.ip_filter_trackers,
+        webUiDomainList: prefsRes.data.web_ui_domain_list,
+        webUiAddress: prefsRes.data.web_ui_address,
+        webUiPort: prefsRes.data.web_ui_port,
+        webUiUpnp: prefsRes.data.web_ui_upnp,
+        webUiUsername: prefsRes.data.web_ui_username,
+        webUiPassword: prefsRes.data.web_ui_password,
+        webUiCsrfProtectionEnabled:
+          prefsRes.data.web_ui_csrf_protection_enabled,
+        webUiClickjackingProtectionEnabled:
+          prefsRes.data.web_ui_clickjacking_protection_enabled,
+        webUiSecureCookieEnabled: prefsRes.data.web_ui_secure_cookie_enabled,
+        webUiMaxAuthFailCount: prefsRes.data.web_ui_max_auth_fail_count,
+        webUiBanDuration: prefsRes.data.web_ui_ban_duration,
+        bypassLocalAuth: prefsRes.data.bypass_local_auth,
+        bypassAuthSubnetWhitelistEnabled:
+          prefsRes.data.bypass_auth_subnet_whitelist_enabled,
+        bypassAuthSubnetWhitelist: prefsRes.data.bypass_auth_subnet_whitelist,
+        alternativeWebuiEnabled: prefsRes.data.alternative_webui_enabled,
+        alternativeWebuiPath: prefsRes.data.alternative_webui_path,
+        useHttps: prefsRes.data.use_https,
+        sslKey: prefsRes.data.ssl_key,
+        sslCert: prefsRes.data.ssl_cert,
+        dyndnsEnabled: prefsRes.data.dyndns_enabled,
+        dyndnsService: prefsRes.data.dyndns_service,
+        dyndnsUsername: prefsRes.data.dyndns_username,
+        dyndnsPassword: prefsRes.data.dyndns_password,
+        dyndnsDomain: prefsRes.data.dyndns_domain,
+        rssRefreshInterval: prefsRes.data.rss_refresh_interval,
+        rssMaxArticlesPerFeed: prefsRes.data.rss_max_articles_per_feed,
+        rssProcessingEnabled: prefsRes.data.rss_processing_enabled,
+        rssAutoDownloadingEnabled: prefsRes.data.rss_auto_downloading_enabled,
+      };
+
+      res.send(prefs);
     })
     .catch(() => res.status(500).send(null));
 });
@@ -390,6 +519,131 @@ router.post("/torrent/:torrentHash/renameFile", async (req, res) => {
     )
     .then(() => res.send(null))
     .catch(() => res.status(400).send(null));
+});
+
+router.post("/torrents/add", async (req, res) => {
+  if (
+    !req.body ||
+    (!(
+      Array.isArray(req.body.links) &&
+      (req.body.links as Array<any>).every((val) => typeof val === "string")
+    ) &&
+      !(
+        Array.isArray(req.body.files) &&
+        (req.body.files as Array<any>).every(
+          (val) =>
+            Array.isArray(val) &&
+            (val as Array<any>).length === 2 &&
+            (val as Array<any>).every((val2) => typeof val2 === "string")
+        )
+      ))
+  ) {
+    res.status(400).send(null);
+    return;
+  }
+
+  const links: Array<string> = req.body.links;
+  const files: Array<[string, string]> = req.body.files;
+  const savePath: string = req.body.savePath;
+  const downloadCookie: string = req.body.downloadCookie;
+  const category: string = req.body.category;
+  const skipHashCheck: boolean = req.body.skipHashCheck;
+  const startTorrent: boolean = req.body.startTorrent;
+  const createSubfolder: boolean = req.body.createSubfolder;
+  const autoManage: boolean = req.body.autoManage;
+  const downloadEdgeFirst: boolean = req.body.downloadEdgeFirst;
+  const downloadSeqOrder: boolean = req.body.downloadSeqOrder;
+  const torrentName: string = req.body.torrentName;
+  const downloadLimit: number = req.body.downloadLimit;
+  const uploadLimit: number = req.body.uploadLimit;
+
+  const formData = new FormData();
+
+  if (links) {
+    formData.append("urls", links.filter((link) => link.length > 0).join("\n"));
+  }
+
+  if (files) {
+    files.forEach((file) => {
+      let fileBuffer = Buffer.from(file[1], "base64");
+      formData.append("torrents", fileBuffer, { filename: file[0] });
+    });
+  }
+
+  if (typeof savePath === "string" && savePath.length > 0) {
+    formData.append("savepath", savePath);
+  }
+
+  if (typeof downloadCookie === "string" && downloadCookie.length > 0) {
+    formData.append("cookie", downloadCookie);
+  }
+
+  if (typeof category === "string" && category.length > 0) {
+    formData.append("category", category);
+  }
+
+  if (typeof skipHashCheck === "boolean") {
+    formData.append("skip_checking", skipHashCheck.toString());
+  }
+
+  if (typeof startTorrent === "boolean") {
+    formData.append("paused", (!startTorrent).toString());
+  }
+
+  if (typeof createSubfolder === "boolean") {
+    formData.append("root_folder", createSubfolder.toString());
+  }
+
+  if (typeof torrentName === "string" && torrentName.length > 0) {
+    formData.append("rename", torrentName);
+  }
+
+  if (typeof downloadLimit === "number" && downloadLimit > 0) {
+    formData.append("dlLimit", downloadLimit.toString());
+  }
+
+  if (typeof uploadLimit === "number" && uploadLimit > 0) {
+    formData.append("upLimit", uploadLimit.toString());
+  }
+
+  if (typeof autoManage === "boolean") {
+    formData.append("autoTMM", autoManage.toString());
+  }
+
+  if (typeof downloadSeqOrder === "boolean") {
+    formData.append("sequentialDownload", downloadSeqOrder.toString());
+  }
+
+  if (typeof downloadEdgeFirst === "boolean") {
+    formData.append("firstLastPiecePrio", downloadEdgeFirst.toString());
+  }
+
+  await axios
+    .post(`${qbittorrentServerUrl}/api/v2/torrents/add`, formData, {
+      headers: {
+        ...formData.getHeaders(),
+        "Content-Length": formData.getLengthSync(),
+      },
+    })
+    .then((addRes) =>
+      addRes.data === "Fails." ? res.status(400).send(null) : res.send(null)
+    )
+    .catch(() => res.status(400).send(null));
+});
+
+router.get("/categories", async (req, res) => {
+  await axios
+    .get(`${qbittorrentServerUrl}/api/v2/torrents/categories`)
+    .then((categoriesRes) => {
+      const rawCategories: { [key: string]: Category } = categoriesRes.data;
+
+      let categories: Array<Category> = [];
+      Object.entries(rawCategories).forEach(([, category]) =>
+        categories.push(category)
+      );
+      res.send(categories);
+    })
+    .catch(() => res.status(500).send(null));
 });
 
 export default router;
