@@ -265,7 +265,10 @@ router.get("/torrents", async (req, res) => {
             downloadEdgesFirst: rawTorrent.f_l_piece_prio,
             autoManage: rawTorrent.auto_tmm,
             category: rawTorrent.category,
-            tags: rawTorrent.tags.split(","),
+            tags: (rawTorrent.tags as string)
+              .split(",")
+              .filter((tag) => tag.length > 0)
+              .map((tag) => tag.trim()),
           };
         })
       );
@@ -591,15 +594,104 @@ router.post("/torrent/:torrentHash/setForceStart", async (req, res) => {
     .catch(() => res.status(400).send(null));
 });
 
+router.post("/torrent/:torrentHash/setCategory", async (req, res) => {
+  if (!req.body || typeof req.body.category !== "string") {
+    res.status(400).send(null);
+    return;
+  }
+
+  await axios
+    .post(
+      `${qbittorrentServerUrl}/api/v2/torrents/setCategory`,
+      querystring.stringify({
+        hashes: req.params.torrentHash,
+        category: req.body.category,
+      }),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    )
+    .then(() => res.send(null))
+    .catch(() => res.status(400).send(null));
+});
+
+router.post("/torrent/:torrentHash/addTags", async (req, res) => {
+  if (
+    !req.body ||
+    !(
+      Array.isArray(req.body.tags) &&
+      (req.body.tags as Array<any>).length > 0 &&
+      (req.body.tags as Array<any>).every((val) => typeof val === "string")
+    )
+  ) {
+    res.status(400).send(null);
+    return;
+  }
+
+  const tags: Array<string> = req.body.tags;
+
+  await axios
+    .post(
+      `${qbittorrentServerUrl}/api/v2/torrents/addTags`,
+      querystring.stringify({
+        hashes: req.params.torrentHash,
+        tags: tags.join(","),
+      }),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    )
+    .then(() => res.send(null))
+    .catch(() => res.status(400).send(null));
+});
+
+router.post("/torrent/:torrentHash/removeTags", async (req, res) => {
+  if (
+    !req.body ||
+    !(
+      Array.isArray(req.body.tags) &&
+      (req.body.tags as Array<any>).length > 0 &&
+      (req.body.tags as Array<any>).every((val) => typeof val === "string")
+    )
+  ) {
+    res.status(400).send(null);
+    return;
+  }
+
+  const tags: Array<string> = req.body.tags;
+
+  await axios
+    .post(
+      `${qbittorrentServerUrl}/api/v2/torrents/removeTags`,
+      querystring.stringify({
+        hashes: req.params.torrentHash,
+        tags: tags.join(","),
+      }),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    )
+    .then(() => res.send(null))
+    .catch(() => res.status(400).send(null));
+});
+
 router.post("/torrents/add", async (req, res) => {
   if (
     !req.body ||
     (!(
       Array.isArray(req.body.links) &&
+      (req.body.links as Array<any>).length > 0 &&
       (req.body.links as Array<any>).every((val) => typeof val === "string")
     ) &&
       !(
         Array.isArray(req.body.files) &&
+        (req.body.files as Array<any>).length > 0 &&
         (req.body.files as Array<any>).every(
           (val) =>
             Array.isArray(val) &&
@@ -712,6 +804,15 @@ router.get("/categories", async (req, res) => {
         categories.push(category)
       );
       res.send(categories);
+    })
+    .catch(() => res.status(500).send(null));
+});
+
+router.get("/tags", async (req, res) => {
+  await axios
+    .get(`${qbittorrentServerUrl}/api/v2/torrents/tags`)
+    .then((tagsRes) => {
+      res.send(tagsRes.data as Array<string>);
     })
     .catch(() => res.status(500).send(null));
 });
